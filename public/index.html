@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
 </head>
+
 <body>
   <form>
     <p>
@@ -16,10 +18,30 @@
     </p>
   </form>
 
+  <ul id="texts"></ul>
+
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script>
     let db
     const request = indexedDB.open('textDB', 1)
+
+    const checkDatabase = () => {
+      const transaction = db.transaction(['text'], 'readwrite')
+      const store = transaction.objectStore('text')
+
+      // how to get all items
+      const getAll = store.getAll()
+
+      // listener for get all success
+      getAll.onsuccess = () => {
+        axios.post('/texts', getAll.result)
+          .then(() => {
+            const tx = db.transaction(['text'], 'readwrite')
+            const store = tx.objectStore('text')
+            store.clear()
+          })
+      }
+    }
 
     const saveText = text => {
       const transaction = db.transaction(['text'], 'readwrite')
@@ -37,38 +59,34 @@
     // when the request is successful
     request.onsuccess = event => {
       db = event.target.result
-      const transaction = db.transaction(['text'], 'readwrite')
-      const store = transaction.objectStore('text')
-      const textIndex = store.index('text')
 
-      // retrieve based on index
-      // const getOnIndex = textIndex.getAll('John Doe')
+      if (navigator.onLine) {
 
-      // getOnIndex.onsuccess = () => {
-      //   console.log(getOnIndex.result)
-      // }
+        checkDatabase()
 
-      // get on id
-      // const first = store.get(1)
+        // retrieve based on index
+        // const getOnIndex = textIndex.getAll('John Doe')
 
-      // first.onsuccess = () => {
-      //   console.log(first.result)
-      // }
+        // getOnIndex.onsuccess = () => {
+        //   console.log(getOnIndex.result)
+        // }
 
-      // how to get all items
-      const getAll = store.getAll()
+        // get on id
+        // const first = store.get(1)
 
-      // listener for get all success
-      getAll.onsuccess = () => {
-        console.log(getAll.result)
+        // first.onsuccess = () => {
+        //   console.log(first.result)
+        // }
+
+
+
+        // how to add items to a store
+        // store.add({ text: 'hotdog' })
+        // store.add({ text: 'jellyfish' })
+        // store.add({ text: 'John Doe' })
+        // store.add({ text: 'John Doe' })
+
       }
-
-      // how to add items to a store
-      // store.add({ text: 'hotdog' })
-      // store.add({ text: 'jellyfish' })
-      // store.add({ text: 'John Doe' })
-      // store.add({ text: 'John Doe' })
-
     }
 
     // when the request errors out
@@ -78,9 +96,34 @@
 
     document.getElementById('saveText').addEventListener('click', event => {
       event.preventDefault()
-      saveText(document.getElementById('text').value)
-      document.getElementById('text').value = ''
+      axios.post('/texts', { text: document.getElementById('text').value })
+        .then(() => {
+          getTexts()
+          document.getElementById('text').value = ''
+        })
+        .catch(e => {
+          console.error(e)
+          saveText(document.getElementById('text').value)
+        })
     })
+
+    const getTexts = () => {
+      axios.get('/texts')
+        .then(({ data: texts }) => {
+          document.getElementById('texts').innerHTML = ''
+          texts.forEach(({ text }) => {
+            let textElem = document.createElement('li')
+            textElem.textContent = text
+            document.getElementById('texts').append(textElem)
+          })
+        })
+    }
+
+    getTexts()
+
+    window.addEventListener('online', checkDatabase)
+
   </script>
 </body>
+
 </html>
