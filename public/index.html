@@ -12,24 +12,31 @@
       <input type="text" name="text" id="text">
     </p>
     <p>
-      <button>Submit</button>
+      <button id="saveText">Submit</button>
     </p>
   </form>
 
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script>
-
+    let db
     const request = indexedDB.open('textDB', 1)
+
+    const saveText = text => {
+      const transaction = db.transaction(['text'], 'readwrite')
+      const store = transaction.objectStore('text')
+      store.add({ text })
+    }
 
     // scales out database if not built already
     request.onupgradeneeded = event => {
       const db = event.target.result
-      const objectStore = db.createObjectStore('text', { keyPath: 'id' })
+      const objectStore = db.createObjectStore('text', { autoIncrement: true })
       objectStore.createIndex('text', 'text')
     }
 
     // when the request is successful
     request.onsuccess = event => {
-      const db = event.target.result
+      db = event.target.result
       const transaction = db.transaction(['text'], 'readwrite')
       const store = transaction.objectStore('text')
       const textIndex = store.index('text')
@@ -49,18 +56,18 @@
       // }
 
       // how to get all items
-      // const getAll = store.getAll()
+      const getAll = store.getAll()
 
       // listener for get all success
-      // getAll.onsuccess = () => {
-      //   console.log(getAll.result)
-      // }
+      getAll.onsuccess = () => {
+        console.log(getAll.result)
+      }
 
       // how to add items to a store
-      // store.add({ id: 1, text: 'hotdog' })
-      // store.add({ id: 2, text: 'jellyfish' })
-      // store.add({ id: 3, text: 'John Doe' })
-      // store.add({ id: 4, text: 'John Doe' })
+      // store.add({ text: 'hotdog' })
+      // store.add({ text: 'jellyfish' })
+      // store.add({ text: 'John Doe' })
+      // store.add({ text: 'John Doe' })
 
     }
 
@@ -69,6 +76,11 @@
       console.log('db error')
     }
 
+    document.getElementById('saveText').addEventListener('click', event => {
+      event.preventDefault()
+      saveText(document.getElementById('text').value)
+      document.getElementById('text').value = ''
+    })
   </script>
 </body>
 </html>
