@@ -25,29 +25,29 @@
     let db
     const request = indexedDB.open('textDB', 1)
 
-    const checkDatabase = () => {
-      const transaction = db.transaction(['text'], 'readwrite')
-      const store = transaction.objectStore('text')
+    // const checkDatabase = () => {
+    //   const transaction = db.transaction(['text'], 'readwrite')
+    //   const store = transaction.objectStore('text')
 
-      // how to get all items
-      const getAll = store.getAll()
+    //   // how to get all items
+    //   const getAll = store.getAll()
 
-      // listener for get all success
-      getAll.onsuccess = () => {
-        axios.post('/texts', getAll.result)
-          .then(() => {
-            const tx = db.transaction(['text'], 'readwrite')
-            const store = tx.objectStore('text')
-            store.clear()
-          })
-      }
-    }
+    //   // listener for get all success
+    //   getAll.onsuccess = () => {
+    //     axios.post('/texts', getAll.result)
+    //       .then(() => {
+    //         const tx = db.transaction(['text'], 'readwrite')
+    //         const store = tx.objectStore('text')
+    //         store.clear()
+    //       })
+    //   }
+    // }
 
-    const saveText = text => {
-      const transaction = db.transaction(['text'], 'readwrite')
-      const store = transaction.objectStore('text')
-      store.add({ text })
-    }
+    // const saveText = text => {
+    //   const transaction = db.transaction(['text'], 'readwrite')
+    //   const store = transaction.objectStore('text')
+    //   store.add({ text })
+    // }
 
     // scales out database if not built already
     request.onupgradeneeded = event => {
@@ -59,34 +59,55 @@
     // when the request is successful
     request.onsuccess = event => {
       db = event.target.result
+      const transaction = db.transaction(['text'], 'readwrite')
+      const store = transaction.objectStore('text')
 
-      if (navigator.onLine) {
+      const cursorRequest = store.openCursor()
 
-        checkDatabase()
-
-        // retrieve based on index
-        // const getOnIndex = textIndex.getAll('John Doe')
-
-        // getOnIndex.onsuccess = () => {
-        //   console.log(getOnIndex.result)
-        // }
-
-        // get on id
-        // const first = store.get(1)
-
-        // first.onsuccess = () => {
-        //   console.log(first.result)
-        // }
-
-
-
-        // how to add items to a store
-        // store.add({ text: 'hotdog' })
-        // store.add({ text: 'jellyfish' })
-        // store.add({ text: 'John Doe' })
-        // store.add({ text: 'John Doe' })
-
+      cursorRequest.onsuccess = event => {
+        const cursor = event.target.result
+        if (cursor) {
+          if (cursor.value.text === 'John Doe') {
+            let item = cursor.value
+            item.text = 'Jane Doe'
+            cursor.update(item)
+          }
+          console.log(cursor.value)
+          cursor.continue()
+        }
       }
+      // const getAll = store.getAll()
+
+      // getAll.onsuccess = () => {
+      //   console.log(getAll.result)
+      // }
+      // if (navigator.onLine) {
+
+      //   checkDatabase()
+
+      // retrieve based on index
+      // const getOnIndex = textIndex.getAll('John Doe')
+
+      // getOnIndex.onsuccess = () => {
+      //   console.log(getOnIndex.result)
+      // }
+
+      // get on id
+      // const first = store.get(1)
+
+      // first.onsuccess = () => {
+      //   console.log(first.result)
+      // }
+
+
+
+      // how to add items to a store
+      // store.add({ text: 'hotdog' })
+      // store.add({ text: 'jellyfish' })
+      // store.add({ text: 'John Doe' })
+      // store.add({ text: 'John Doe' })
+
+      // }
     }
 
     // when the request errors out
@@ -94,34 +115,34 @@
       console.log('db error')
     }
 
-    document.getElementById('saveText').addEventListener('click', event => {
-      event.preventDefault()
-      axios.post('/texts', { text: document.getElementById('text').value })
-        .then(() => {
-          getTexts()
-          document.getElementById('text').value = ''
-        })
-        .catch(e => {
-          console.error(e)
-          saveText(document.getElementById('text').value)
-        })
-    })
+    // document.getElementById('saveText').addEventListener('click', event => {
+    //   event.preventDefault()
+    //   axios.post('/texts', { text: document.getElementById('text').value })
+    //     .then(() => {
+    //       getTexts()
+    //       document.getElementById('text').value = ''
+    //     })
+    //     .catch(e => {
+    //       console.error(e)
+    //       saveText(document.getElementById('text').value)
+    //     })
+    // })
 
-    const getTexts = () => {
-      axios.get('/texts')
-        .then(({ data: texts }) => {
-          document.getElementById('texts').innerHTML = ''
-          texts.forEach(({ text }) => {
-            let textElem = document.createElement('li')
-            textElem.textContent = text
-            document.getElementById('texts').append(textElem)
-          })
-        })
-    }
+    // const getTexts = () => {
+    //   axios.get('/texts')
+    //     .then(({ data: texts }) => {
+    //       document.getElementById('texts').innerHTML = ''
+    //       texts.forEach(({ text }) => {
+    //         let textElem = document.createElement('li')
+    //         textElem.textContent = text
+    //         document.getElementById('texts').append(textElem)
+    //       })
+    //     })
+    // }
 
-    getTexts()
+    // getTexts()
 
-    window.addEventListener('online', checkDatabase)
+    // window.addEventListener('online', checkDatabase)
 
   </script>
 </body>
