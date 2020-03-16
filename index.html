@@ -20,14 +20,48 @@
 
     const request = indexedDB.open('textDB', 1)
 
+    // scales out database if not built already
     request.onupgradeneeded = event => {
       const db = event.target.result
-      const objectStore = db.createObjectStore('text')
+      const objectStore = db.createObjectStore('text', { keyPath: 'id' })
+      objectStore.createIndex('text', 'text')
     }
 
     // when the request is successful
     request.onsuccess = event => {
-      console.log('connected successfully')
+      const db = event.target.result
+      const transaction = db.transaction(['text'], 'readwrite')
+      const store = transaction.objectStore('text')
+      const textIndex = store.index('text')
+
+      // retrieve based on index
+      // const getOnIndex = textIndex.getAll('John Doe')
+
+      // getOnIndex.onsuccess = () => {
+      //   console.log(getOnIndex.result)
+      // }
+
+      // get on id
+      // const first = store.get(1)
+
+      // first.onsuccess = () => {
+      //   console.log(first.result)
+      // }
+
+      // how to get all items
+      // const getAll = store.getAll()
+
+      // listener for get all success
+      // getAll.onsuccess = () => {
+      //   console.log(getAll.result)
+      // }
+
+      // how to add items to a store
+      // store.add({ id: 1, text: 'hotdog' })
+      // store.add({ id: 2, text: 'jellyfish' })
+      // store.add({ id: 3, text: 'John Doe' })
+      // store.add({ id: 4, text: 'John Doe' })
+
     }
 
     // when the request errors out
