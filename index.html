@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <form>
+    <p>
+      <label for="text">text</label>
+      <input type="text" name="text" id="text">
+    </p>
+    <p>
+      <button>Submit</button>
+    </p>
+  </form>
+
+  <script>
+
+    const request = indexedDB.open('textDB', 1)
+
+    request.onupgradeneeded = event => {
+      const db = event.target.result
+      const objectStore = db.createObjectStore('text')
+    }
+
+    // when the request is successful
+    request.onsuccess = event => {
+      console.log('connected successfully')
+    }
+
+    // when the request errors out
+    request.onerror = event => {
+      console.log('db error')
+    }
+
+  </script>
+</body>
+</html>
